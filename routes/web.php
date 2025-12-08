@@ -60,8 +60,9 @@ Route::middleware(['auth'])->group(function () {
 Route::prefix('admin')->group(function () {
     
     // Accès au tableau de bord Admin via /admin
-    // et /admin/dashboard
     Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard'); 
+    
+    // Accès via /admin/dashboard (nom différent pour éviter conflit)
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard.show'); 
     
     // Toutes les autres routes d'administration sont gérées ici 
@@ -79,9 +80,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require _DIR_.'/auth.php';
 
 // Tes routes d'administration sont déjà préfixées dans admin.php (c'est bon)
-require __DIR__.'/admin.php'; 
+require _DIR_.'/admin.php'; 
 
-require __DIR__.'/front.php';
+require _DIR_.'/front.php';
