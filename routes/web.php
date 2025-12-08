@@ -1,0 +1,87 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PaiementController;
+use Illuminate\Support\Facades\Route;
+
+// 1. IMPORTER LE NOUVEAU CONTROLLER D'ADMINISTRATION
+use App\Http\Controllers\AdminController; 
+// OU : use App\Http\Controllers\Admin\AdminController; si tu l'as mis dans un sous-dossier
+
+
+// ===========================================
+// ROUTES PUBLIQUES & UTILISATEUR (FRONTEND)
+// ===========================================
+
+// Route SPLASH SCREEN (Animation 5s avec drapeau du Bénin)
+Route::get('/', function () {
+    return view('splash');
+})->name('splash');
+
+// Route de la page d'accueil principale (Le site public)
+Route::get('/home', function () {
+    return view('welcome');
+})->name('home');
+
+// Redirection pour garder la compatibilité
+Route::redirect('/welcome', '/home');
+
+
+// Dashboard Utilisateur (nécessite d'être connecté)
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+// ===========================================
+// ROUTES PAIEMENT FEDAPAY
+// ===========================================
+
+// Routes de paiement
+Route::middleware(['auth'])->prefix('paiement')->group(function () {
+    Route::get('/contenu/{contenu}', [PaiementController::class, 'show'])->name('paiement.show');
+    Route::post('/contenu/{contenu}/initier', [PaiementController::class, 'initier'])->name('paiement.initier');
+    Route::get('/callback', [PaiementController::class, 'callback'])->name('paiement.callback');
+});
+
+// Webhook FedaPay (sans middleware CSRF)
+Route::withoutMiddleware(['web'])->post('/webhook/fedapay', [PaiementController::class, 'webhook']);
+
+// Routes contenus premium
+Route::middleware(['auth'])->group(function () {
+    Route::get('/contenus/{contenu}/premium', [App\Http\Controllers\ContenuController::class, 'premium'])->name('contenus.premium');
+});
+
+
+// ===========================================
+// ROUTES ADMINISTRATION (AJOUTER LE PRÉFIXE /admin)
+// ===========================================
+
+Route::prefix('admin')->group(function () {
+    
+    // Accès au tableau de bord Admin via /admin
+    // et /admin/dashboard
+    Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard'); 
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard.show'); 
+    
+    // Toutes les autres routes d'administration sont gérées ici 
+    // et dans le fichier inclus admin.php
+});
+
+
+// ===========================================
+// AUTRES ROUTES
+// ===========================================
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+
+// Tes routes d'administration sont déjà préfixées dans admin.php (c'est bon)
+require __DIR__.'/admin.php'; 
+
+require __DIR__.'/front.php';

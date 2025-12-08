@@ -1,0 +1,464 @@
+@extends('layout')
+
+@section('title')
+<!-- CDN Tailwind CSS -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div class="flex items-center mb-4 sm:mb-0">
+        <div class="bg-gradient-to-r from-blue-600 to-green-500 p-3 rounded-2xl shadow-lg mr-4">
+            <i class="fas fa-users text-white text-xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+            <p class="text-gray-600 mt-1">Liste complète des utilisateurs du système</p>
+        </div>
+    </div>
+    <nav class="flex" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2 text-sm">
+            <li class="inline-flex items-center">
+                <a href="{{ url('/') }}" class="inline-flex items-center text-gray-500 hover:text-blue-600">
+                    <i class="fas fa-home mr-2"></i>
+                    Accueil
+                </a>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="ml-1 text-blue-600 font-medium">Utilisateurs</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+</div>
+@endsection
+
+@section('content')
+<div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <!-- En-tête de la carte - ESPACE RÉDUIT -->
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div class="mb-3 lg:mb-0">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-list-ul text-blue-600 mr-2 text-base"></i>
+                    Liste des Utilisateurs
+                </h2>
+            </div>
+            <a href="{{ route('admin.users.create') }}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg">
+                <i class="fas fa-plus-circle mr-2 text-sm"></i>
+                Nouvel Utilisateur
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenu de la carte -->
+    <div class="p-6">
+        <!-- Message de succès -->
+        @if(session('success'))
+        <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-xl">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-semibold text-green-800">Succès !</h3>
+                    <p class="text-green-700 mt-1 text-sm">{{ session('success') }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Cartes de statistiques -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Total Utilisateurs</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ $users->count() ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-red-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-user-shield text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Administrateurs</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ $users->where('statut', 'Administrateur')->count() ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-user-check text-yellow-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Modérateurs</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ $users->where('statut', 'Modérateur')->count() ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-user text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Utilisateurs</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ $users->where('statut', 'Utilisateur')->count() ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+            <table id="usersTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-user mr-2 text-gray-500 text-xs"></i>
+                                Utilisateur
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope mr-2 text-gray-500 text-xs"></i>
+                                Email
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-user-tag mr-2 text-gray-500 text-xs"></i>
+                                Statut
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-language mr-2 text-gray-500 text-xs"></i>
+                                Langue
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt mr-2 text-gray-500 text-xs"></i>
+                                Rôle
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt mr-2 text-gray-500 text-xs"></i>
+                                Inscription
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-cogs mr-2 text-gray-500 text-xs"></i>
+                                Actions
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if($users && $users->count() > 0)
+                        @foreach($users as $user)
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="bg-blue-100 p-1 rounded-lg mr-3">
+                                        @if($user->photo)
+                                            <img class="h-8 w-8 rounded-full object-cover" 
+                                                 src="{{ asset('images/'.$user->photo) }}" 
+                                                 alt="{{ $user->prenom }}"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm hidden">
+                                                {{ substr($user->prenom, 0, 1) }}{{ substr($user->nom, 0, 1) }}
+                                            </div>
+                                        @else
+                                            <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                                                {{ substr($user->prenom, 0, 1) }}{{ substr($user->nom, 0, 1) }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="text-sm font-semibold text-gray-900">
+                                        {{ $user->prenom }} {{ $user->nom }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $user->email }}</div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                @php
+                                    $statusConfig = [
+                                        'Administrateur' => ['class' => 'bg-red-100 text-red-800', 'icon' => 'user-shield'],
+                                        'Modérateur' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'user-check'],
+                                        'Utilisateur' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'user']
+                                    ];
+                                    $config = $statusConfig[$user->statut] ?? $statusConfig['Utilisateur'];
+                                @endphp
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $config['class'] }}">
+                                    <i class="fas fa-{{ $config['icon'] }} mr-1 text-xs"></i>
+                                    {{ $user->statut }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ optional($user->langue)->nom_langue ?? '-' }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                @php
+                                    $roleConfig = [
+                                        'Administrateur' => ['class' => 'bg-purple-100 text-purple-800', 'icon' => 'star'],
+                                        'Manager' => ['class' => 'bg-orange-100 text-orange-800', 'icon' => 'user-tie'],
+                                        'Traducteur' => ['class' => 'bg-blue-100 text-blue-800', 'icon' => 'edit'],
+                                        'Utilisateur' => ['class' => 'bg-gray-100 text-gray-800', 'icon' => 'user'],
+                                        'Lecteur' => ['class' => 'bg-green-100 text-green-800', 'icon' => 'eye'],
+                                        'Moderateur' => ['class' => 'bg-yellow-100 text-yellow-800', 'icon' => 'user-check'],
+                                    ];
+                                    $roleName = optional($user->role)->nom ?? 'Utilisateur';
+                                    $config = $roleConfig[$roleName] ?? $roleConfig['Utilisateur'];
+                                @endphp
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $config['class'] }}">
+                                    <i class="fas fa-{{ $config['icon'] }} mr-1 text-xs"></i>
+                                    {{ $roleName }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ \Carbon\Carbon::parse($user->date_inscription)->format('d/m/Y') }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="flex items-center space-x-2">
+                                    <!-- Bouton Voir - ICÔNE SEULEMENT -->
+                                    <a href="{{ route('admin.users.show', $user->id_utilisateur) }}" 
+                                       class="inline-flex items-center justify-center w-8 h-8 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg"
+                                       title="Voir les détails">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                    
+                                    <!-- Bouton Modifier - ICÔNE SEULEMENT -->
+                                    <a href="{{ route('admin.users.edit', $user->id_utilisateur) }}" 
+                                       class="inline-flex items-center justify-center w-8 h-8 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 shadow-md hover:shadow-lg"
+                                       title="Modifier">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
+                                    
+                                    <!-- Bouton Supprimer - ICÔNE SEULEMENT -->
+                                    <form action="{{ route('admin.users.destroy', $user->id_utilisateur) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="inline-flex items-center justify-center w-8 h-8 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-md hover:shadow-lg"
+                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')"
+                                                title="Supprimer">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <div class="flex flex-col items-center justify-center py-8">
+                                    <i class="fas fa-users text-gray-300 text-4xl mb-3"></i>
+                                    <p class="text-gray-500">Aucun utilisateur trouvé</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600">
+            <div class="flex items-center mb-3 sm:mb-0">
+                <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                <span class="font-medium">{{ $users ? $users->count() : 0 }} utilisateur(s) enregistré(s)</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fas fa-database mr-2 text-green-500"></i>
+                <span class="font-medium">Base de données culturelle du Bénin</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts DataTables -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Configuration DataTables SIMPLIFIÉE
+    var table = $('#usersTable').DataTable({
+        "pageLength": 10,
+        "responsive": true,
+        "language": {
+            "emptyTable": "Aucune donnée disponible dans le tableau",
+            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+            "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+            "infoFiltered": "(filtrées depuis _MAX_ entrées totales)",
+            "infoThousands": ",",
+            "lengthMenu": "Afficher _MENU_ entrées",
+            "loadingRecords": "Chargement...",
+            "processing": "Traitement...",
+            "search": "Rechercher:",
+            "zeroRecords": "Aucun enregistrement correspondant trouvé",
+            "paginate": {
+                "first": "Premier",
+                "last": "Dernier",
+                "next": "Suivant",
+                "previous": "Précédent"
+            },
+            "aria": {
+                "sortAscending": ": activer pour trier la colonne par ordre croissant",
+                "sortDescending": ": activer pour trier la colonne par ordre décroissant"
+            }
+        },
+        "dom": '<"flex flex-col lg:flex-row lg:items-center lg:justify-between p-4"<"mb-4 lg:mb-0"l><"mb-4 lg:mb-0"f>><"overflow-x-auto"t><"flex flex-col lg:flex-row lg:items-center lg:justify-between p-4"<"mb-4 lg:mb-0"i><"mb-4 lg:mb-0"p>>'
+    });
+
+    console.log("DataTables utilisateurs initialisé avec succès !");
+});
+</script>
+
+<!-- Styles personnalisés -->
+<style>
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_length select:focus,
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #3b82f6;
+    ring-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f9fafb;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Animation pour les boutons d'action */
+.flex.items-center.space-x-2 a,
+.flex.items-center.space-x-2 button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Style pour la pagination DataTables */
+.dataTables_paginate .paginate_button {
+    border: 1px solid #d1d5db !important;
+    border-radius: 10px !important;
+    margin: 0 4px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease-in-out;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background: linear-gradient(135deg, #3b82f6, #10b981) !important;
+    color: white !important;
+    border: none !important;
+    transform: translateY(-1px);
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #3b82f6, #10b981) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Amélioration de l'apparence du tableau */
+#usersTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#usersTable th,
+#usersTable td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.75rem 1.5rem !important;
+}
+
+#usersTable thead th {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Badge amélioré */
+.bg-blue-100 {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+}
+
+/* Style spécifique pour les boutons d'actions */
+.flex.items-center.space-x-2 a,
+.flex.items-center.space-x-2 button {
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+}
+
+/* Responsive amélioré */
+@media (max-width: 768px) {
+    .flex.items-center.space-x-2 {
+        flex-direction: row !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
+    }
+    
+    .flex.items-center.space-x-2 a,
+    .flex.items-center.space-x-2 button {
+        min-width: auto !important;
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    #usersTable th,
+    #usersTable td {
+        padding: 0.5rem 1rem !important;
+    }
+}
+</style>
+@endsection
