@@ -59,7 +59,7 @@ Route::middleware(['auth'])->group(function () {
 // Si vous voulez que /admin redirige vers le dashboard
 Route::get('/admin', function () {
     return redirect()->route('admin.dashboard');
-});
+})->name('admin.redirect'); // Ajoutez un nom unique
 
 
 // ===========================================
