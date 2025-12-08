@@ -5,8 +5,7 @@ use App\Http\Controllers\PaiementController;
 use Illuminate\Support\Facades\Route;
 
 // 1. IMPORTER LE NOUVEAU CONTROLLER D'ADMINISTRATION
-use App\Http\Controllers\AdminController; 
-// OU : use App\Http\Controllers\Admin\AdminController; si tu l'as mis dans un sous-dossier
+use App\Http\Controllers\AdminController;
 
 
 // ===========================================
@@ -54,19 +53,12 @@ Route::middleware(['auth'])->group(function () {
 
 
 // ===========================================
-// ROUTES ADMINISTRATION (AJOUTER LE PRÉFIXE /admin)
+// REDIRECTION ADMIN (optionnel)
 // ===========================================
 
-Route::prefix('admin')->group(function () {
-    
-    // Accès au tableau de bord Admin via /admin
-    Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard'); 
-    
-    // Accès via /admin/dashboard (nom différent pour éviter conflit)
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard.show'); 
-    
-    // Toutes les autres routes d'administration sont gérées ici 
-    // et dans le fichier inclus admin.php
+// Si vous voulez que /admin redirige vers le dashboard
+Route::get('/admin', function () {
+    return redirect()->route('admin.dashboard');
 });
 
 
@@ -80,9 +72,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require _DIR_.'/auth.php';
-
-// Tes routes d'administration sont déjà préfixées dans admin.php (c'est bon)
-require _DIR_.'/admin.php'; 
-
-require _DIR_.'/front.php';
+// CORRECTION ICI : __DIR__ avec DEUX underscores
+require __DIR__.'/auth.php';
+require __DIR__.'/admin.php'; 
+require __DIR__.'/front.php';
