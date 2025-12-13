@@ -13,15 +13,17 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\DemandeContributeurController;
 
-// PROTECTION ADMIN : seul un utilisateur avec le rôle "Administrateur" peut accéder
+// PROTECTION ADMIN
 Route::prefix('admin')
     ->middleware(['auth', 'role:Administrateur'])
-    ->as('admin.')
+    ->name('admin.')
     ->group(function () {
 
+        // Dashboard - nom explicite
         Route::get('/dashboard', [AdminController::class, 'dashboard'])
             ->name('dashboard');
 
+        // Resources
         Route::resource('langues', LanguesController::class);
         Route::resource('roles', RolesController::class);
         Route::resource('regions', RegionsController::class);
@@ -32,7 +34,7 @@ Route::prefix('admin')
         Route::resource('commentaires', CommentairesController::class);
         Route::resource('users', UsersController::class);
 
-        // Routes pour les demandes contributeur
+        // Demandes contributeur
         Route::prefix('demandes')->name('demandes.')->group(function () {
             Route::get('/', [DemandeContributeurController::class, 'index'])->name('index');
             Route::get('/{id}', [DemandeContributeurController::class, 'show'])->name('show');
