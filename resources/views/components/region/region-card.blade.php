@@ -4,35 +4,51 @@
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-green-100 hover:shadow-2xl hover:border-green-300 transition-all duration-300 h-full flex flex-col">
         {{-- Image de la région --}}
         <div class="relative h-48 overflow-hidden">
-            @if($region->image || $region->photo)
-                @php
-                    // Gestion des chemins d'images
-                    $imagePath = $region->image ?? $region->photo;
-                    
-                    if (Str::startsWith($imagePath, ['adminlte/img/', 'public/adminlte/img/', '/adminlte/img/'])) {
-                        $cleanPath = ltrim($imagePath, '/');
-                        if (Str::startsWith($cleanPath, 'public/')) {
-                            $cleanPath = Str::after($cleanPath, 'public/');
-                        }
-                        $imageUrl = asset($cleanPath);
-                    } elseif (Str::startsWith($imagePath, 'storage/')) {
-                        $imageUrl = asset($imagePath);
-                    } elseif (filter_var($imagePath, FILTER_VALIDATE_URL)) {
-                        $imageUrl = $imagePath;
-                    } else {
-                        $imageUrl = 'https://placehold.co/600x400/8b7355/ffffff?text=' . urlencode(substr($region->nom_region, 0, 15));
-                    }
-                @endphp
+            @php
+                // CHARGEMENT PAR NOM DE LA RÉGION
+                // Crée un slug à partir du nom de la région
+                $nomFichier = strtolower(str_replace([' ', "'", '"'], ['-', '', ''], $region->nom_region ?? $region->nom));
                 
-                <img src="{{ $imageUrl }}" 
-                     alt="{{ $region->nom_region }}"
-                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center\'><i class=\'fas fa-map text-white text-4xl\'></i></div>'">
-            @else
-                <div class="w-full h-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center">
-                    <i class="fas fa-map text-white text-4xl"></i>
-                </div>
-            @endif
+                // Liste des extensions possibles
+                $extensions = ['.jpg', '.jpeg', '.png', '.webp'];
+                
+                // Cherche l'image par nom
+                $imageTrouvee = false;
+                $imagePath = '';
+                
+                foreach ($extensions as $extension) {
+                    $cheminTest = 'adminlte/img/regions/' . $nomFichier . $extension;
+                    if (file_exists(public_path($cheminTest))) {
+                        $imagePath = $cheminTest;
+                        $imageTrouvee = true;
+                        break;
+                    }
+                }
+                
+                // Si pas trouvée, essaie avec ID
+                if (!$imageTrouvee) {
+                    foreach ($extensions as $extension) {
+                        $cheminTest = 'adminlte/img/regions/' . $region->id . $extension;
+                        if (file_exists(public_path($cheminTest))) {
+                            $imagePath = $cheminTest;
+                            $imageTrouvee = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si toujours pas trouvée, utilise une image par défaut
+                if (!$imageTrouvee) {
+                    $imagePath = 'adminlte/img/default/region.jpg';
+                }
+                
+                $imageUrl = asset($imagePath);
+            @endphp
+            
+            <img src="{{ $imageUrl }}" 
+                 alt="{{ $region->nom_region ?? $region->nom }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/8b7355/ffffff?text='+encodeURIComponent('{{ $region->nom_region ?? $region->nom }}');">
             
             {{-- Overlay gradient --}}
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>

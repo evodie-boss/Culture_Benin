@@ -4,35 +4,66 @@
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-green-100 hover:shadow-2xl hover:border-green-300 transition-all duration-300 h-full flex flex-col">
         {{-- Image/Illustration de la langue --}}
         <div class="relative h-48 overflow-hidden">
-            @if($langue->drapeau || $langue->image)
-                @php
-                    // Gestion des chemins d'images
-                    $imagePath = $langue->drapeau ?? $langue->image;
-                    
-                    if (Str::startsWith($imagePath, ['adminlte/img/', 'public/adminlte/img/', '/adminlte/img/'])) {
-                        $cleanPath = ltrim($imagePath, '/');
-                        if (Str::startsWith($cleanPath, 'public/')) {
-                            $cleanPath = Str::after($cleanPath, 'public/');
-                        }
-                        $imageUrl = asset($cleanPath);
-                    } elseif (Str::startsWith($imagePath, 'storage/')) {
-                        $imageUrl = asset($imagePath);
-                    } elseif (filter_var($imagePath, FILTER_VALIDATE_URL)) {
-                        $imageUrl = $imagePath;
-                    } else {
-                        $imageUrl = 'https://placehold.co/600x400/8b7355/ffffff?text=' . urlencode(substr($langue->nom_langue, 0, 15));
-                    }
-                @endphp
+            @php
+                // CHARGEMENT PAR NOM DE LA LANGUE
+                // Crée un slug à partir du nom de la langue
+                $nomFichier = strtolower(str_replace([' ', "'", '"', 'é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù'], 
+                                                     ['-', '', '', 'e', 'e', 'e', 'e', 'a', 'a', 'i', 'i', 'o', 'u', 'u'], 
+                                                     $langue->nom_langue));
                 
-                <img src="{{ $imageUrl }}" 
-                     alt="{{ $langue->nom_langue }}"
-                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center\'><i class=\'fas fa-language text-white text-4xl\'></i></div>'">
-            @else
-                <div class="w-full h-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
-                    <i class="fas fa-language text-white text-4xl"></i>
-                </div>
-            @endif
+                // Liste des extensions possibles
+                $extensions = ['.jpg', '.jpeg', '.png', '.webp'];
+                
+                // Cherche l'image par nom
+                $imageTrouvee = false;
+                $imagePath = '';
+                
+                foreach ($extensions as $extension) {
+                    $cheminTest = 'adminlte/img/langues/' . $nomFichier . $extension;
+                    if (file_exists(public_path($cheminTest))) {
+                        $imagePath = $cheminTest;
+                        $imageTrouvee = true;
+                        break;
+                    }
+                }
+                
+                // Si pas trouvée, essaie avec code langue
+                if (!$imageTrouvee && $langue->code_langue) {
+                    $codeFichier = strtolower($langue->code_langue);
+                    foreach ($extensions as $extension) {
+                        $cheminTest = 'adminlte/img/langues/' . $codeFichier . $extension;
+                        if (file_exists(public_path($cheminTest))) {
+                            $imagePath = $cheminTest;
+                            $imageTrouvee = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si pas trouvée, essaie avec ID
+                if (!$imageTrouvee) {
+                    foreach ($extensions as $extension) {
+                        $cheminTest = 'adminlte/img/langues/' . $langue->id . $extension;
+                        if (file_exists(public_path($cheminTest))) {
+                            $imagePath = $cheminTest;
+                            $imageTrouvee = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si toujours pas trouvée, utilise une image par défaut
+                if (!$imageTrouvee) {
+                    $imagePath = 'adminlte/img/default/langue.jpg';
+                }
+                
+                $imageUrl = asset($imagePath);
+            @endphp
+            
+            <img src="{{ $imageUrl }}" 
+                 alt="{{ $langue->nom_langue }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/0d9488/ffffff?text='+encodeURIComponent('{{ $langue->nom_langue }}');">
             
             {{-- Overlay gradient --}}
             <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
